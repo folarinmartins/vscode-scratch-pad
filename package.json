@@ -5,7 +5,7 @@
     "version": "0.0.1",
     "repository": {
         "type": "git",
-        "url": "https://github.com:folarinmartins/vscode-scratch-pad.git"
+        "url": "git@github.com:folarinmartins/vscode-scratch-pad.git"
     },
     "engines": {
         "vscode": "^1.91.0"
