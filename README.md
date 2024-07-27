@@ -63,6 +63,9 @@ Future plans for Scratch Pad include:
 -   [ ] Multiple scratchpads
 -   [ ] Markdown support
 -   [ ] Code snippet formatting
+-   [ ] Manage Secrets
+-   [ ] Named Snippets
+-   [ ] Labels and tags
 
 ## Contributing
 
