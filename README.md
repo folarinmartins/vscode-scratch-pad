@@ -4,6 +4,8 @@
 
 Scratch Pad is a simple, yet powerful extension for Visual Studio Code that provides a convenient space for quick notes, code snippets, and temporary text alongside your workspace.
 
+This came from need I'd had for a long time - opened a feature request on vs code (VS Code issue)[https://github.com/Microsoft/vscode/issues/58774] but it wasn't approved, so I went ahead to create one
+
 ## Features
 
 -   **Persistent Scratchpad**: A dedicated space for notes that persists between VS Code sessions.
@@ -11,7 +13,7 @@ Scratch Pad is a simple, yet powerful extension for Visual Studio Code that prov
 -   **Auto-save**: Your notes are automatically saved as you type.
 -   **Theme-matched**: Automatically matches your VS Code theme for a seamless look.
 
-![Scratch Pad in action](images/scratchpad-demo.gif)
+![Scratch Pad in action](images/scribble.png)
 
 > Note: The above image is a placeholder. Replace it with an actual screenshot or GIF of your extension in use.
 
