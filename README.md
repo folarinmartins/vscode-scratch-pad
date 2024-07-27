@@ -13,6 +13,8 @@ This came from need I'd had for a long time - opened a feature request on vs cod
 -   **Auto-save**: Your notes are automatically saved as you type.
 -   **Theme-matched**: Automatically matches your VS Code theme for a seamless look.
 
+![Scratch Pad in action](images/scribble.png)
+
 ## Requirements
 
 This extension requires Visual Studio Code version 1.60.0 or higher.
