@@ -57,7 +57,6 @@
         },
         "virtualWorkspaces": true
     },
-    "icon": "resources/scratchpad.svg",
     "repository": {
         "type": "git",
         "url": "https://github.com/folarinmartins/vscode-scratch-pad.git"
