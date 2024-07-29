@@ -83,7 +83,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-If you encounter any problems or have any suggestions for improvements, please [open an issue](https://github.com/folarinmartins/vscode-scratchpad-extension/issues) on our GitHub repository.
+If you encounter any problems or have any suggestions for improvements, please [open an issue](https://github.com/folarinmartins/vscode-scratch-pad/issues) on our GitHub repository.
 
 ---
 
