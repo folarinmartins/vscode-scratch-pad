@@ -75,13 +75,15 @@ If you have suggestions for improvements or bug fixes, please feel free to contr
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
 
+Before submitting your pull request, please make sure your changes are consistent with the project's coding style and that all tests pass.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
-If you encounter any problems or have any suggestions, please [open an issue](https://github.com/yourusername/vscode-scratchpad/issues) on our GitHub repository.
+If you encounter any problems or have any suggestions for improvements, please [open an issue](https://github.com/folarinmartins/vscode-scratchpad-extension/issues) on our GitHub repository.
 
 ---
 
