@@ -18,7 +18,10 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.options = {
             enableScripts: true,
-            localResourceRoots: [this._extensionContext.extensionUri]
+            localResourceRoots: [
+                this._extensionContext.extensionUri,
+                vscode.Uri.joinPath(this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min')
+            ]
         };
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
@@ -34,6 +37,9 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
 
     private _getHtmlForWebview(webview: vscode.Webview) {
         const initialContent = this._extensionContext.globalState.get(SCRATCHPAD_CONTENT_KEY, '');
+        const monacoScriptUri = webview.asWebviewUri(vscode.Uri.joinPath(
+            this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min', 'vs', 'loader.js'
+        ));
 
         return `
             <!DOCTYPE html>
@@ -41,37 +47,42 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Scribble</title>
+                <title>Scratchpad</title>
                 <style>
                     body, html {
                         height: 100%;
                         margin: 0;
                         padding: 0;
+                        overflow: hidden;
                     }
-                    #scratchpad {
+                    #editor {
                         width: 100%;
                         height: 100%;
-                        border: none;
-                        resize: none;
-                        padding: 10px;
-                        box-sizing: border-box;
-                        font-family: var(--vscode-editor-font-family);
-                        font-size: var(--vscode-editor-font-size);
-                        background-color: var(--vscode-editor-background);
-                        color: var(--vscode-editor-foreground);
                     }
                 </style>
             </head>
             <body>
-                <textarea id="scratchpad">${initialContent}</textarea>
+                <div id="editor"></div>
+                <script src="${monacoScriptUri}"></script>
                 <script>
                     const vscode = acquireVsCodeApi();
-                    const scratchpad = document.getElementById('scratchpad');
-                    
-                    scratchpad.addEventListener('input', () => {
-                        vscode.postMessage({
-                            type: 'update',
-                            value: scratchpad.value
+                    let editor;
+
+                    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.50.0/min/vs' } });
+
+                    require(['vs/editor/editor.main'], function() {
+                        editor = monaco.editor.create(document.getElementById('editor'), {
+                            value: ${JSON.stringify(initialContent)},
+                            language: 'plaintext',
+                            theme: 'vs-dark',
+                            automaticLayout: true
+                        });
+
+                        editor.onDidChangeModelContent(() => {
+                            vscode.postMessage({
+                                type: 'update',
+                                value: editor.getValue()
+                            });
                         });
                     });
                 </script>
