@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 const SCRATCHPAD_CONTENT_KEY = 'scratchpadContent';
 
@@ -36,9 +37,11 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
-        const initialContent = this._extensionContext.globalState.get(SCRATCHPAD_CONTENT_KEY, '');
-        const monacoScriptUri = webview.asWebviewUri(vscode.Uri.joinPath(
-            this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min', 'vs', 'loader.js'
+        const initialContent = this._extensionContext.globalState.get(SCRATCHPAD_CONTENT_KEY, 'Welcome to Scratchpad for VS Code');
+        
+        // Use the bundled Monaco Editor files
+        const monacoBase = webview.asWebviewUri(vscode.Uri.joinPath(
+            this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min'
         ));
 
         return `
@@ -63,12 +66,12 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             </head>
             <body>
                 <div id="editor"></div>
-                <script src="${monacoScriptUri}"></script>
+                <script src="${monacoBase}/vs/loader.js"></script>
                 <script>
                     const vscode = acquireVsCodeApi();
                     let editor;
 
-                    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.50.0/min/vs' } });
+                    require.config({ paths: { vs: '${monacoBase}/vs' } });
 
                     require(['vs/editor/editor.main'], function() {
                         editor = monaco.editor.create(document.getElementById('editor'), {
