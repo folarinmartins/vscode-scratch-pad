@@ -95,34 +95,42 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
                     require.config({ paths: { vs: '${monacoBase}' } });
 
                     require(['vs/editor/editor.main'], function() {
-                        editor = monaco.editor.create(document.getElementById('editor'), {
-                            value: lastSavedContent,
-                            language: 'plaintext',
-                            theme: 'vs-dark',
-                            automaticLayout: true
-                        });
+                        try {
+                            editor = monaco.editor.create(document.getElementById('editor'), {
+                                value: lastSavedContent,
+                                language: 'plaintext',
+                                theme: 'vs-dark',
+                                automaticLayout: true
+                            });
 
-                        editor.onDidChangeModelContent(() => {
-                            const currentContent = editor.getValue();
-                            if (currentContent !== lastSavedContent) {
-                                lastSavedContent = currentContent;
-                                vscode.postMessage({
-                                    type: 'update',
-                                    value: currentContent
-                                });
-                            }
-                        });
+                            editor.onDidChangeModelContent(() => {
+                                const currentContent = editor.getValue();
+                                if (currentContent !== lastSavedContent) {
+                                    lastSavedContent = currentContent;
+                                    vscode.postMessage({
+                                        type: 'update',
+                                        value: currentContent
+                                    });
+                                }
+                            });
 
-                        window.addEventListener('message', event => {
-                            const message = event.data;
-                            switch (message.type) {
-                                case 'update':
-                                    if (message.content !== editor.getValue()) {
-                                        editor.setValue(message.content);
-                                    }
-                                    break;
-                            }
-                        });
+                            window.addEventListener('message', event => {
+                                const message = event.data;
+                                switch (message.type) {
+                                    case 'update':
+                                        if (message.content !== editor.getValue()) {
+                                            editor.setValue(message.content);
+                                        }
+                                        break;
+                                }
+                            });
+                        } catch (error) {
+                            console.error('Error initializing Monaco editor:', error);
+                            vscode.postMessage({
+                                type: 'error',
+                                value: 'Failed to initialize editor. Please reload the window.'
+                            });
+                        }
                     });
                 </script>
             </body>
@@ -134,19 +142,28 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
 let scratchpadProvider: ScratchpadViewProvider | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-    scratchpadProvider = new ScratchpadViewProvider(context);
+    console.log('Scratchpad extension is being activated');
     
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(ScratchpadViewProvider.viewType, scratchpadProvider)
-    );
+    try {
+        scratchpadProvider = new ScratchpadViewProvider(context);
+        
+        context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider(ScratchpadViewProvider.viewType, scratchpadProvider)
+        );
 
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('scratchpad') && scratchpadProvider) {
-                scratchpadProvider.saveContent(); // Force a save when configuration changes
-            }
-        })
-    );
+        context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration(e => {
+                if (e.affectsConfiguration('scratchpad') && scratchpadProvider) {
+                    scratchpadProvider.saveContent(); // Force a save when configuration changes
+                }
+            })
+        );
+
+        console.log('Scratchpad extension activated successfully');
+    } catch (error) {
+        console.error('Error activating Scratchpad extension:', error);
+        vscode.window.showErrorMessage('Failed to activate Scratchpad extension. Please check the logs and reload the window.');
+    }
 }
 
 export function deactivate() {
