@@ -45,7 +45,7 @@ This extension contributes the following settings:
 
 ## Release Notes
 
-### 1.3.2-4
+### 1.3.2-5
 
 -   Bug fixes and performance improvements
 
