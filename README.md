@@ -45,6 +45,10 @@ This extension contributes the following settings:
 
 ## Release Notes
 
+### 1.3.2
+
+-   Bug fixes and performance improvements
+
 ### 1.3.0
 
 -   Upgraded scratchpad to fully featured editor to support advanced features
