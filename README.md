@@ -43,28 +43,6 @@ This extension contributes the following settings:
 
 -   Syncing functionality is not yet implemented.
 
-## Release Notes
-
-### 1.3.2-6
-
--   Bug fixes and performance improvements
-
-### 1.3.0
-
--   Upgraded scratchpad to fully featured editor to support advanced features
-
-### 1.2.0
-
--   Moved persistent mechanism from local file to globalUpdate to take advantage of Setting Sync
-
-### 1.0.0
-
-Initial release of Scratch Pad:
-
--   Persistent scratchpad in the panel area
--   Auto-save functionality
--   Theme-matching appearance
-
 ## Roadmap
 
 Future plans for Scratch Pad include:
