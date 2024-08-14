@@ -41,7 +41,7 @@ This extension contributes the following settings:
 
 ## Known Issues
 
--   Syncing functionality is not yet implemented.
+-   Occasionally delayed syncing of content: actively being worked on
 
 ## Roadmap
 
