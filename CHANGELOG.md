@@ -6,6 +6,10 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 
 ## [Unreleased]
 
+### Fixed
+
+-   State not properly saving
+
 ## [1.3.7] - 2024-08-13
 
 ### Added
