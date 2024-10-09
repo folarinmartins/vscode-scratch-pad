@@ -1,50 +1,65 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 const SCRATCHPAD_CONTENT_KEY = 'scratchpadContent';
 
 class ScratchpadViewProvider implements vscode.WebviewViewProvider {
-    public static readonly viewType = 'scratchpad';
+  public static readonly viewType = 'scratchpad';
 
-    private _view?: vscode.WebviewView;
+  private _view?: vscode.WebviewView;
+  private storagePath: string;
 
-    constructor(private readonly _extensionContext: vscode.ExtensionContext) {}
-
-    public resolveWebviewView(
-        webviewView: vscode.WebviewView,
-        context: vscode.WebviewViewResolveContext,
-        _token: vscode.CancellationToken,
-    ) {
-        this._view = webviewView;
-
-        webviewView.webview.options = {
-            enableScripts: true,
-            localResourceRoots: [
-                this._extensionContext.extensionUri,
-                vscode.Uri.joinPath(this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min')
-            ]
-        };
-
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-
-        webviewView.webview.onDidReceiveMessage(data => {
-            switch (data.type) {
-                case 'update':
-                    this._extensionContext.globalState.update(SCRATCHPAD_CONTENT_KEY, data.value);
-                    break;
-            }
-        });
+  constructor(private readonly _extensionContext: vscode.ExtensionContext) {
+    if (!_extensionContext.storagePath) {
+      throw new Error('Storage path is not defined');
     }
+    this.storagePath = path.join(_extensionContext.storagePath, 'scratchpadContent.txt');
+  }
 
-    private _getHtmlForWebview(webview: vscode.Webview) {
-        const initialContent = this._extensionContext.globalState.get(SCRATCHPAD_CONTENT_KEY, 'Welcome to Scratchpad for VS Code');
-        
-        // Use the bundled Monaco Editor files
-        const monacoBase = webview.asWebviewUri(vscode.Uri.joinPath(
-            this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min'
-        ));
+  public resolveWebviewView(
+    webviewView: vscode.WebviewView,
+    context: vscode.WebviewViewResolveContext,
+    _token: vscode.CancellationToken,
+  ) {
+    this._view = webviewView;
 
-        return `
+    webviewView.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [
+        this._extensionContext.extensionUri,
+        vscode.Uri.joinPath(this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min')
+      ]
+    };
+
+    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+    webviewView.webview.onDidReceiveMessage((data: { type: any; value: any; }) => {
+      switch (data.type) {
+        case 'update':
+          this.saveData(data.value).catch(error => {
+            console.error('Error saving data:', error);
+            vscode.window.showErrorMessage('Error saving data: ' + error.message);
+          });
+          break;
+      }
+    });
+    webviewView.onDidChangeVisibility(() => {
+      if (webviewView.visible) {
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+      }
+    });
+  }
+
+  private _getHtmlForWebview(webview: vscode.Webview) {
+    const initialContent = this.loadData();
+
+    // Use the bundled Monaco Editor files
+    const monacoBase = webview.asWebviewUri(vscode.Uri.joinPath(
+      this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min'
+    ));
+
+    return `
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -92,15 +107,52 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             </body>
             </html>
         `;
+  }
+
+  private loadData(): string {
+    try {
+      return fs.readFileSync(this.storagePath, 'utf8');
+    } catch (error) {
+      if (error instanceof Error && 'code' in error) {
+        if (error.code === 'ENOENT') {
+          return 'Welcome to Scratchpad for VS Code';
+        } else {
+          console.error('Error loading data:', error);
+          vscode.window.showErrorMessage('Error loading data: ' + error.message);
+        }
+      } else {
+        console.error('Unknown error:', error);
+        vscode.window.showErrorMessage('Unknown error');
+      }
+      return '';
     }
+  }
+
+
+  private async saveData(data: string): Promise<void> {
+    try {
+      const dirPath = path.dirname(this.storagePath);
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+      fs.writeFileSync(this.storagePath, data);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        console.error('Unknown error:', error);
+        vscode.window.showErrorMessage('Unknown error');
+      }
+    }
+  }
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    const provider = new ScratchpadViewProvider(context);
-    
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(ScratchpadViewProvider.viewType, provider)
-    );
+  const provider = new ScratchpadViewProvider(context);
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(ScratchpadViewProvider.viewType, provider)
+  );
 }
 
-export function deactivate() {}
+export function deactivate() { }
