@@ -1,0 +1,15 @@
+trigger:
+  - master
+
+resources:
+  repositories:
+    - repository: templates
+      type: GitHub
+      name: FoodRES/foodres-azure-shared-pipeline
+      ref: refs/heads/master
+      endpoint: github
+
+extends:
+  template: vscode-extension-pipeline.yml@templates
+  parameters:
+    publishToMarketplace: ${{ eq(variables['Build.SourceBranch'], 'refs/heads/master') }}
