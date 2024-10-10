@@ -65,7 +65,7 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Scratchpad</title>
+                <title>Scratch pad</title>
                 <style>
                     body, html {
                         height: 100%;
