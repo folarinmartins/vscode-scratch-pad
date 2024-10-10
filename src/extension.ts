@@ -110,40 +110,11 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
   }
 
   private loadData(): string {
-    try {
-      return fs.readFileSync(this.storagePath, 'utf8');
-    } catch (error) {
-      if (error instanceof Error && 'code' in error) {
-        if (error.code === 'ENOENT') {
-          return 'Welcome to Scratchpad for VS Code';
-        } else {
-          console.error('Error loading data:', error);
-          vscode.window.showErrorMessage('Error loading data: ' + error.message);
-        }
-      } else {
-        console.error('Unknown error:', error);
-        vscode.window.showErrorMessage('Unknown error');
-      }
-      return '';
-    }
+    return this._extensionContext.globalState.get(SCRATCHPAD_CONTENT_KEY, 'Welcome to Scratchpad for VS Code');
   }
 
-
   private async saveData(data: string): Promise<void> {
-    try {
-      const dirPath = path.dirname(this.storagePath);
-      if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
-      }
-      fs.writeFileSync(this.storagePath, data);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      } else {
-        console.error('Unknown error:', error);
-        vscode.window.showErrorMessage('Unknown error');
-      }
-    }
+    await this._extensionContext.globalState.update(SCRATCHPAD_CONTENT_KEY, data);
   }
 }
 

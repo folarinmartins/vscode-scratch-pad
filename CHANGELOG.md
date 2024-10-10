@@ -6,9 +6,14 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 
 ## [Unreleased]
 
+## [1.4.2] - 2024-10-09
+
+-   [Added] Restored globalState to sync content on all connected devices
+
 ## [1.4.1] - 2024-10-09
 
 -   [Fixed] Bug: State not properly saving
+-   [Removed] Global sync to content on all connected devices
 
 ## [1.3.8] - 2024-08-13
 
