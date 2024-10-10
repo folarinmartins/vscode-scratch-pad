@@ -6,6 +6,10 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 
 ## [Unreleased]
 
+## [1.4.3] - 2024-10-09
+
+-   [Changed] Changed tab title to "scratch pad"
+
 ## [1.4.2] - 2024-10-09
 
 -   [Added] Restored globalState to sync content on all connected devices
