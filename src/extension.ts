@@ -33,7 +33,8 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
     };
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-
+    const state = this.loadData();
+    webviewView.webview.postMessage({ type: 'init', value: state });
     webviewView.webview.onDidReceiveMessage(async (data: { type: string; value: any; }) => {
       switch (data.type) {
         case 'update':
@@ -48,9 +49,9 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             value: data.value.currentTitle
           });
           if (newTitle) {
-            const tabs = this.loadData();
-            tabs[data.value.index].title = newTitle;
-            await this.saveData(tabs);
+            const state = this.loadData();
+            state.tabs[data.value.index].title = newTitle;
+            await this.saveData(state);
             webviewView.webview.postMessage({ type: 'tabRenamed', value: { index: data.value.index, newTitle } });
           }
           break;
@@ -67,17 +68,17 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
-    const tabs = this.loadData();
+    const state = this.loadData();
 
     // Use the bundled Monaco Editor files
     const monacoBase = webview.asWebviewUri(vscode.Uri.joinPath(
       this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min'
     ));
 
-    return this._createHtmlContent(monacoBase.toString(), JSON.stringify(tabs));
+    return this._createHtmlContent(monacoBase.toString(), JSON.stringify(state));
   }
 
-  private _createHtmlContent(monacoBase: string, tabsJson: string): string {
+  private _createHtmlContent(monacoBase: string, data: string): string {
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -95,8 +96,11 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
         #tabs {
           display: flex;
           background-color: #252526;
+          align-items: center;
         }
         .tab {
+          display: flex;
+          align-items: center;
           padding: 5px 10px;
           cursor: pointer;
           border: 1px solid #3c3c3c;
@@ -106,55 +110,82 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
         .tab.active {
           background-color: #1e1e1e;
         }
+        .tab-icon {
+          margin-left: 5px;
+          cursor: pointer;
+        }
+        #addTab {
+          padding: 5px 10px;
+          cursor: pointer;
+          background-color: #2d2d2d;
+          color: #cccccc;
+        }
         #editor {
           width: 100%;
           height: calc(100% - 30px);
-        }
-        #tabActions {
-          display: flex;
-          justify-content: flex-end;
-          padding: 5px;
-          background-color: #252526;
-        }
-        #tabActions button {
-          margin-left: 5px;
         }
       </style>
     </head>
     <body>
       <div id="tabs"></div>
-      <div id="tabActions">
-        <button id="addTab">Add Tab</button>
-        <button id="renameTab">Rename Tab</button>
-        <button id="deleteTab">Delete Tab</button>
-      </div>
       <div id="editor"></div>
       <script src="${monacoBase}/vs/loader.js"></script>
       <script>
         const vscode = acquireVsCodeApi();
         let editor;
-        let tabs = ${tabsJson};
-        let currentTabIndex = 0;
+        let { tabs, currentTabIndex } = ${data};
+        if (!Array.isArray(tabs) || typeof currentTabIndex !== 'number') {
+          tabs = [{ title: 'New Tab', content: '' }];
+          currentTabIndex = 0;
+        }
 
         function renderTabs() {
           const tabsContainer = document.getElementById('tabs');
           tabsContainer.innerHTML = tabs.map((tab, index) => 
             '<div class="tab ' + (index === currentTabIndex ? 'active' : '') + '" ' +
-            'onclick="switchTab(' + index + ')">' + tab.title + '</div>'
-          ).join('');
+            'onclick="switchTab(' + index + ')">' + tab.title +
+            '<span class="tab-icon" onclick="event.stopPropagation(); renameTab(' + index + ')">✏️</span>' +
+            '<span class="tab-icon" onclick="event.stopPropagation(); closeTab(' + index + ')">❌</span>' +
+            '</div>'
+          ).join('') + '<div id="addTab" onclick="addTab()">+</div>';
         }
 
         function switchTab(index) {
           currentTabIndex = index;
           renderTabs();
           editor.setValue(tabs[currentTabIndex].content);
+          updateState();
         }
 
-        function updateTab() {
+        function updateState() {
           tabs[currentTabIndex].content = editor.getValue();
-          vscode.postMessage({ type: 'update', value: tabs });
+          vscode.postMessage({ type: 'update', value: { tabs, currentTabIndex } });
         }
-          
+
+        function addTab() {
+          tabs.push({ title: 'New Tab', content: '' });
+          switchTab(tabs.length - 1);
+        }
+
+        function renameTab(index) {
+          vscode.postMessage({ 
+            type: 'renameTab', 
+            value: { index, currentTitle: tabs[index].title }
+          });
+        }
+
+        function closeTab(index) {
+          if (tabs.length > 1) {
+            tabs.splice(index, 1);
+            currentTabIndex = Math.min(currentTabIndex, tabs.length - 1);
+            renderTabs();
+            editor.setValue(tabs[currentTabIndex].content);
+            updateState();
+          } else {
+            vscode.postMessage({ type: 'error', value: 'Cannot close the last tab' });
+          }
+        }
+
         window.addEventListener('message', event => {
           const message = event.data;
           switch (message.type) {
@@ -175,36 +206,9 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             automaticLayout: true
           });
 
-          editor.onDidChangeModelContent(updateTab);
+          editor.onDidChangeModelContent(updateState);
 
           renderTabs();
-
-          document.getElementById('addTab').onclick = () => {
-            tabs.push({ title: 'New Tab', content: '' });
-            currentTabIndex = tabs.length - 1;
-            renderTabs();
-            editor.setValue('');
-            updateTab();
-          };
-
-          document.getElementById('renameTab').onclick = () => {
-            vscode.postMessage({ 
-              type: 'renameTab', 
-              value: { index: currentTabIndex, currentTitle: tabs[currentTabIndex].title }
-            });
-          };
-
-          document.getElementById('deleteTab').onclick = () => {
-            if (tabs.length > 1) {
-              tabs.splice(currentTabIndex, 1);
-              currentTabIndex = Math.max(0, currentTabIndex - 1);
-              renderTabs();
-              editor.setValue(tabs[currentTabIndex].content);
-              updateTab();
-            } else {
-              vscode.postMessage({ type: 'error', value: 'Cannot delete the last tab' });
-            }
-          };
         });
       </script>
     </body>
@@ -212,18 +216,21 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
   `;
   }
 
-  private loadData(): { title: string; content: string }[] {
-    const savedData = this._extensionContext.globalState.get<{ title: string; content: string }[]>(SCRATCHPAD_CONTENT_KEY);
-    if (savedData && savedData.length > 0) {
-      return savedData;
-    }
-    // Backward compatibility: convert old data to new format
-    const oldContent = this._extensionContext.globalState.get<string>(SCRATCHPAD_CONTENT_KEY, 'Welcome to Scratchpad for VS Code');
-    return [{ title: 'Tab 1', content: oldContent }];
+  private async saveData(state: { tabs: { title: string; content: string }[], currentTabIndex: number }): Promise<void> {
+    await fs.promises.writeFile(this.storagePath, JSON.stringify(state), 'utf8');
   }
 
-  private async saveData(data: { title: string; content: string }[]): Promise<void> {
-    await this._extensionContext.globalState.update(SCRATCHPAD_CONTENT_KEY, data);
+  private loadData(): { tabs: { title: string; content: string }[], currentTabIndex: number } {
+    try {
+      const data = fs.readFileSync(this.storagePath, 'utf8');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed.tabs) && typeof parsed.currentTabIndex === 'number') {
+        return parsed;
+      }
+      throw new Error('Invalid data structure');
+    } catch (error) {
+      return { tabs: [{ title: 'New Tab', content: '' }], currentTabIndex: 0 };
+    }
   }
 }
 
