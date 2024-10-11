@@ -110,6 +110,14 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
         .tab.active {
           background-color: #1e1e1e;
         }
+        .tab-title {
+          cursor: pointer;
+          flex-grow: 1;
+          padding-right: 5px;
+        }
+        .tab-title:hover {
+          text-decoration: underline;
+        }
         .tab-icon {
           margin-left: 5px;
           cursor: pointer;
@@ -143,8 +151,8 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
           const tabsContainer = document.getElementById('tabs');
           tabsContainer.innerHTML = tabs.map((tab, index) => 
             '<div class="tab ' + (index === currentTabIndex ? 'active' : '') + '" ' +
-            'onclick="switchTab(' + index + ')">' + tab.title +
-            '<span class="tab-icon" onclick="event.stopPropagation(); renameTab(' + index + ')">✏️</span>' +
+            'onclick="switchTab(' + index + ')">' +
+            '<span class="tab-title" ondblclick="renameTab(' + index + ')">' + tab.title + '</span>' +
             '<span class="tab-icon" onclick="event.stopPropagation(); closeTab(' + index + ')">❌</span>' +
             '</div>'
           ).join('') + '<div id="addTab" onclick="addTab()">+</div>';
