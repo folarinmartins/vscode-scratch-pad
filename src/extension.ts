@@ -166,7 +166,7 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             '<div class="tab ' + (index === currentTabIndex ? 'active' : '') + '" ' +
             'onclick="switchTab(' + index + ')">' +
             '<span class="tab-title" ondblclick="startRename(' + index + ')">' + tab.title + '</span>' +
-            '<span class="tab-icon" onclick="event.stopPropagation(); closeTab(' + index + ')">❌</span>' +
+            '<span class="tab-icon" onclick="event.stopPropagation(); closeTab(' + index + ')">×</span>' +
             '</div>'
           ).join('') + '<div id="addTab" onclick="addTab()">+</div>';
         }
