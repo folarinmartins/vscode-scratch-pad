@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
+// import * as path from 'path';
+// import * as fs from 'fs';
 
 const SCRATCHPAD_CONTENT_KEY = 'scratchpadTabs';
 
@@ -8,13 +8,8 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'scratchpad';
 
   private _view?: vscode.WebviewView;
-  private storagePath: string;
 
   constructor(private readonly _extensionContext: vscode.ExtensionContext) {
-    if (!_extensionContext.storagePath) {
-      throw new Error('Storage path is not defined');
-    }
-    this.storagePath = path.join(_extensionContext.storagePath, 'scratchpadContent.txt');
   }
 
   public resolveWebviewView(
@@ -292,20 +287,15 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async saveData(state: { tabs: { title: string; content: string }[], currentTabIndex: number }): Promise<void> {
-    await fs.promises.writeFile(this.storagePath, JSON.stringify(state), 'utf8');
+    await this._extensionContext.globalState.update(SCRATCHPAD_CONTENT_KEY, state);
   }
 
   private loadData(): { tabs: { title: string; content: string }[], currentTabIndex: number } {
-    try {
-      const data = fs.readFileSync(this.storagePath, 'utf8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed.tabs) && typeof parsed.currentTabIndex === 'number') {
-        return parsed;
-      }
-      throw new Error('Invalid data structure');
-    } catch (error) {
-      return { tabs: [{ title: 'New Tab', content: '' }], currentTabIndex: 0 };
+    const data = this._extensionContext.globalState.get<{ tabs: { title: string; content: string }[], currentTabIndex: number }>(SCRATCHPAD_CONTENT_KEY);
+    if (data && Array.isArray(data.tabs) && typeof data.currentTabIndex === 'number') {
+      return data;
     }
+    return { tabs: [{ title: 'New Tab', content: '' }], currentTabIndex: 0 };
   }
 }
 

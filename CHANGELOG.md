@@ -12,6 +12,11 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 -   [Planned] Introduce syntax highlighting for common programming languages
 -   [Planned] Add option to export all tabs as a single document
 
+## [1.5.1] - 2024-10-11
+
+-   [Added] Cross-workspace data persistence using globalState
+-   [Changed] Switched from file-based storage to VS Code's globalState for data persistence
+
 ## [1.5.0] - 2024-10-11
 
 -   [Added] Multiple tabs functionality
@@ -20,6 +25,8 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 -   [Added] Confirmation dialog before closing tabs
 -   [Changed] Replaced edit icon with double-click functionality for renaming
 -   [Changed] Improved close icon design and size
+
+// ... rest of the changelog ...
 
 ## [1.4.3] - 2024-10-09
 
