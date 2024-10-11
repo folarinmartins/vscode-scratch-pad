@@ -43,6 +43,17 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             vscode.window.showErrorMessage('Error saving data: ' + error.message);
           });
           break;
+        case 'confirmCloseTab':
+          const result = await vscode.window.showWarningMessage(
+            `Are you sure you want to close the tab "${data.value.title}"?`,
+            { modal: true },
+            'Yes',
+            'No'
+          );
+          if (result === 'Yes') {
+            webviewView.webview.postMessage({ type: 'closeTabConfirmed', value: data.value.index });
+          }
+          break;
         case 'error':
           vscode.window.showErrorMessage(data.value);
           break;
@@ -201,11 +212,10 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
 
         function closeTab(index) {
           if (tabs.length > 1) {
-            tabs.splice(index, 1);
-            currentTabIndex = Math.min(currentTabIndex, tabs.length - 1);
-            renderTabs();
-            editor.setValue(tabs[currentTabIndex].content);
-            updateState();
+            vscode.postMessage({ 
+              type: 'confirmCloseTab', 
+              value: { index, title: tabs[index].title }
+            });
           } else {
             vscode.postMessage({ type: 'error', value: 'Cannot close the last tab' });
           }
@@ -218,8 +228,18 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
               tabs[message.value.index].title = message.value.newTitle;
               renderTabs();
               break;
+            case 'closeTabConfirmed':
+              const index = message.value;
+              tabs.splice(index, 1);
+              currentTabIndex = Math.min(currentTabIndex, tabs.length - 1);
+              renderTabs();
+              editor.setValue(tabs[currentTabIndex].content);
+              updateState();
+              break;
           }
         });
+        
+        
 
         require.config({ paths: { vs: '${monacoBase}/vs' } });
 
