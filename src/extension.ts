@@ -145,6 +145,36 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
           outline: none;
           border-bottom: 1px solid #007acc;
         }
+          
+        .close-icon {
+    width: 10px;  /* Reduced from 14px */
+    height: 10px; /* Reduced from 14px */
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+    margin-left: 5px;
+  }
+  .close-icon::before,
+  .close-icon::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 1px;  /* Reduced from 2px for a thinner line */
+    background-color: #cccccc;
+    top: 50%;
+    left: 0;
+  }
+  .close-icon::before {
+    transform: rotate(45deg);
+  }
+  .close-icon::after {
+    transform: rotate(-45deg);
+  }
+  .close-icon:hover::before,
+  .close-icon:hover::after {
+    background-color: #ffffff;
+  }
+
       </style>
     </head>
     <body>
@@ -166,7 +196,7 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             '<div class="tab ' + (index === currentTabIndex ? 'active' : '') + '" ' +
             'onclick="switchTab(' + index + ')">' +
             '<span class="tab-title" ondblclick="startRename(' + index + ')">' + tab.title + '</span>' +
-            '<span class="tab-icon" onclick="event.stopPropagation(); closeTab(' + index + ')">×</span>' +
+            '<span class="tab-icon close-icon" onclick="event.stopPropagation(); closeTab(' + index + ')"></span>' +
             '</div>'
           ).join('') + '<div id="addTab" onclick="addTab()">+</div>';
         }
