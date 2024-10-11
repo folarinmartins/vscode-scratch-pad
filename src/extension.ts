@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const SCRATCHPAD_CONTENT_KEY = 'scratchpadContent';
+const SCRATCHPAD_CONTENT_KEY = 'scratchpadTabs';
 
 class ScratchpadViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'scratchpad';
@@ -34,13 +34,16 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    webviewView.webview.onDidReceiveMessage((data: { type: any; value: any; }) => {
+    webviewView.webview.onDidReceiveMessage((data: { type: string; value: any; }) => {
       switch (data.type) {
         case 'update':
           this.saveData(data.value).catch(error => {
             console.error('Error saving data:', error);
             vscode.window.showErrorMessage('Error saving data: ' + error.message);
           });
+          break;
+        case 'error':
+          vscode.window.showErrorMessage(data.value);
           break;
       }
     });
@@ -52,68 +55,154 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
-    const initialContent = this.loadData();
+    const tabs = this.loadData();
 
     // Use the bundled Monaco Editor files
     const monacoBase = webview.asWebviewUri(vscode.Uri.joinPath(
       this._extensionContext.extensionUri, 'node_modules', 'monaco-editor', 'min'
     ));
 
+    return this._createHtmlContent(monacoBase.toString(), JSON.stringify(tabs));
+  }
+
+  private _createHtmlContent(monacoBase: string, tabsJson: string): string {
     return `
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Scratch pad</title>
-                <style>
-                    body, html {
-                        height: 100%;
-                        margin: 0;
-                        padding: 0;
-                        overflow: hidden;
-                    }
-                    #editor {
-                        width: 100%;
-                        height: 100%;
-                    }
-                </style>
-            </head>
-            <body>
-                <div id="editor"></div>
-                <script src="${monacoBase}/vs/loader.js"></script>
-                <script>
-                    const vscode = acquireVsCodeApi();
-                    let editor;
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Scratch pad</title>
+      <style>
+        body, html {
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+        }
+        #tabs {
+          display: flex;
+          background-color: #252526;
+        }
+        .tab {
+          padding: 5px 10px;
+          cursor: pointer;
+          border: 1px solid #3c3c3c;
+          background-color: #2d2d2d;
+          color: #cccccc;
+        }
+        .tab.active {
+          background-color: #1e1e1e;
+        }
+        #editor {
+          width: 100%;
+          height: calc(100% - 30px);
+        }
+        #tabActions {
+          display: flex;
+          justify-content: flex-end;
+          padding: 5px;
+          background-color: #252526;
+        }
+        #tabActions button {
+          margin-left: 5px;
+        }
+      </style>
+    </head>
+    <body>
+      <div id="tabs"></div>
+      <div id="tabActions">
+        <button id="addTab">Add Tab</button>
+        <button id="renameTab">Rename Tab</button>
+        <button id="deleteTab">Delete Tab</button>
+      </div>
+      <div id="editor"></div>
+      <script src="${monacoBase}/vs/loader.js"></script>
+      <script>
+        const vscode = acquireVsCodeApi();
+        let editor;
+        let tabs = ${tabsJson};
+        let currentTabIndex = 0;
 
-                    require.config({ paths: { vs: '${monacoBase}/vs' } });
+        function renderTabs() {
+          const tabsContainer = document.getElementById('tabs');
+          tabsContainer.innerHTML = tabs.map((tab, index) => 
+            '<div class="tab ' + (index === currentTabIndex ? 'active' : '') + '" ' +
+            'onclick="switchTab(' + index + ')">' + tab.title + '</div>'
+          ).join('');
+        }
 
-                    require(['vs/editor/editor.main'], function() {
-                        editor = monaco.editor.create(document.getElementById('editor'), {
-                            value: ${JSON.stringify(initialContent)},
-                            language: 'plaintext',
-                            theme: 'vs-dark',
-                            automaticLayout: true
-                        });
+        function switchTab(index) {
+          currentTabIndex = index;
+          renderTabs();
+          editor.setValue(tabs[currentTabIndex].content);
+        }
 
-                        editor.onDidChangeModelContent(() => {
-                            vscode.postMessage({
-                                type: 'update',
-                                value: editor.getValue()
-                            });
-                        });
-                    });
-                </script>
-            </body>
-            </html>
-        `;
+        function updateTab() {
+          tabs[currentTabIndex].content = editor.getValue();
+          vscode.postMessage({ type: 'update', value: tabs });
+        }
+
+        require.config({ paths: { vs: '${monacoBase}/vs' } });
+
+        require(['vs/editor/editor.main'], function() {
+          editor = monaco.editor.create(document.getElementById('editor'), {
+            value: tabs[currentTabIndex].content,
+            language: 'plaintext',
+            theme: 'vs-dark',
+            automaticLayout: true
+          });
+
+          editor.onDidChangeModelContent(updateTab);
+
+          renderTabs();
+
+          document.getElementById('addTab').onclick = () => {
+            tabs.push({ title: 'New Tab', content: '' });
+            currentTabIndex = tabs.length - 1;
+            renderTabs();
+            editor.setValue('');
+            updateTab();
+          };
+
+          document.getElementById('renameTab').onclick = () => {
+            const newTitle = prompt('Enter new tab name:', tabs[currentTabIndex].title);
+            if (newTitle) {
+              tabs[currentTabIndex].title = newTitle;
+              renderTabs();
+              updateTab();
+            }
+          };
+
+          document.getElementById('deleteTab').onclick = () => {
+            if (tabs.length > 1) {
+              tabs.splice(currentTabIndex, 1);
+              currentTabIndex = Math.max(0, currentTabIndex - 1);
+              renderTabs();
+              editor.setValue(tabs[currentTabIndex].content);
+              updateTab();
+            } else {
+              vscode.postMessage({ type: 'error', value: 'Cannot delete the last tab' });
+            }
+          };
+        });
+      </script>
+    </body>
+    </html>
+  `;
   }
 
-  private loadData(): string {
-    return this._extensionContext.globalState.get(SCRATCHPAD_CONTENT_KEY, 'Welcome to Scratchpad for VS Code');
+  private loadData(): { title: string; content: string }[] {
+    const savedData = this._extensionContext.globalState.get<{ title: string; content: string }[]>(SCRATCHPAD_CONTENT_KEY);
+    if (savedData && savedData.length > 0) {
+      return savedData;
+    }
+    // Backward compatibility: convert old data to new format
+    const oldContent = this._extensionContext.globalState.get<string>(SCRATCHPAD_CONTENT_KEY, 'Welcome to Scratchpad for VS Code');
+    return [{ title: 'Tab 1', content: oldContent }];
   }
 
-  private async saveData(data: string): Promise<void> {
+  private async saveData(data: { title: string; content: string }[]): Promise<void> {
     await this._extensionContext.globalState.update(SCRATCHPAD_CONTENT_KEY, data);
   }
 }
