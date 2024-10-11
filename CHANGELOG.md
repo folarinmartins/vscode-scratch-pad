@@ -6,6 +6,21 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 
 ## [Unreleased]
 
+-   [Planned] Add drag-and-drop functionality to reorder tabs
+-   [Planned] Implement tab groups or categories for better organization
+-   [Planned] Add search functionality across all tabs
+-   [Planned] Introduce syntax highlighting for common programming languages
+-   [Planned] Add option to export all tabs as a single document
+
+## [1.5.0] - 2024-10-11
+
+-   [Added] Multiple tabs functionality
+-   [Added] Ability to add and close tabs
+-   [Added] Double-click to rename tabs in-place
+-   [Added] Confirmation dialog before closing tabs
+-   [Changed] Replaced edit icon with double-click functionality for renaming
+-   [Changed] Improved close icon design and size
+
 ## [1.4.3] - 2024-10-09
 
 -   [Changed] Changed tab title to "scratch pad"
