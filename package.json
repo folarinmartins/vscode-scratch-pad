@@ -18,7 +18,7 @@
             "panel": [
                 {
                     "id": "scratchpadContainer",
-                    "title": "Scratchpad",
+                    "title": "Scratch pad",
                     "icon": "resources/scratchpad.svg"
                 }
             ]
