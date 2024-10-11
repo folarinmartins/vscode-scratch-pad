@@ -43,18 +43,6 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
             vscode.window.showErrorMessage('Error saving data: ' + error.message);
           });
           break;
-        case 'renameTab':
-          const newTitle = await vscode.window.showInputBox({
-            prompt: 'Enter new tab name',
-            value: data.value.currentTitle
-          });
-          if (newTitle) {
-            const state = this.loadData();
-            state.tabs[data.value.index].title = newTitle;
-            await this.saveData(state);
-            webviewView.webview.postMessage({ type: 'tabRenamed', value: { index: data.value.index, newTitle } });
-          }
-          break;
         case 'error':
           vscode.window.showErrorMessage(data.value);
           break;
@@ -132,6 +120,20 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
           width: 100%;
           height: calc(100% - 30px);
         }
+          
+        .rename-input {
+          background: transparent;
+          border: none;
+          color: inherit;
+          font-size: inherit;
+          font-family: inherit;
+          padding: 0;
+          width: 100%;
+        }
+        .rename-input:focus {
+          outline: none;
+          border-bottom: 1px solid #007acc;
+        }
       </style>
     </head>
     <body>
@@ -152,12 +154,34 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
           tabsContainer.innerHTML = tabs.map((tab, index) => 
             '<div class="tab ' + (index === currentTabIndex ? 'active' : '') + '" ' +
             'onclick="switchTab(' + index + ')">' +
-            '<span class="tab-title" ondblclick="renameTab(' + index + ')">' + tab.title + '</span>' +
+            '<span class="tab-title" ondblclick="startRename(' + index + ')">' + tab.title + '</span>' +
             '<span class="tab-icon" onclick="event.stopPropagation(); closeTab(' + index + ')">❌</span>' +
             '</div>'
           ).join('') + '<div id="addTab" onclick="addTab()">+</div>';
         }
-
+        function startRename(index) {
+          const tabTitle = document.querySelector('.tab:nth-child(' + (index + 1) + ') .tab-title');
+          const currentTitle = tabs[index].title;
+          tabTitle.innerHTML = '<input type="text" class="rename-input" value="' + currentTitle.replace(/"/g, '&quot;') + '" />';
+          const input = tabTitle.querySelector('input');
+          input.focus();
+          input.select();
+          input.addEventListener('blur', function() { finishRename(index, input.value); });
+          input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              input.blur();
+            }
+          });
+        }
+        function finishRename(index, newTitle) {
+          if (newTitle && newTitle !== tabs[index].title) {
+            tabs[index].title = newTitle;
+            renderTabs();
+            updateState();
+          } else {
+            renderTabs();
+          }
+        }
         function switchTab(index) {
           currentTabIndex = index;
           renderTabs();
@@ -173,13 +197,6 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
         function addTab() {
           tabs.push({ title: 'New Tab', content: '' });
           switchTab(tabs.length - 1);
-        }
-
-        function renameTab(index) {
-          vscode.postMessage({ 
-            type: 'renameTab', 
-            value: { index, currentTitle: tabs[index].title }
-          });
         }
 
         function closeTab(index) {
