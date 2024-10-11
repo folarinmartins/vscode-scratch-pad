@@ -34,13 +34,25 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    webviewView.webview.onDidReceiveMessage((data: { type: string; value: any; }) => {
+    webviewView.webview.onDidReceiveMessage(async (data: { type: string; value: any; }) => {
       switch (data.type) {
         case 'update':
           this.saveData(data.value).catch(error => {
             console.error('Error saving data:', error);
             vscode.window.showErrorMessage('Error saving data: ' + error.message);
           });
+          break;
+        case 'renameTab':
+          const newTitle = await vscode.window.showInputBox({
+            prompt: 'Enter new tab name',
+            value: data.value.currentTitle
+          });
+          if (newTitle) {
+            const tabs = this.loadData();
+            tabs[data.value.index].title = newTitle;
+            await this.saveData(tabs);
+            webviewView.webview.postMessage({ type: 'tabRenamed', value: { index: data.value.index, newTitle } });
+          }
           break;
         case 'error':
           vscode.window.showErrorMessage(data.value);
@@ -142,6 +154,16 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
           tabs[currentTabIndex].content = editor.getValue();
           vscode.postMessage({ type: 'update', value: tabs });
         }
+          
+        window.addEventListener('message', event => {
+          const message = event.data;
+          switch (message.type) {
+            case 'tabRenamed':
+              tabs[message.value.index].title = message.value.newTitle;
+              renderTabs();
+              break;
+          }
+        });
 
         require.config({ paths: { vs: '${monacoBase}/vs' } });
 
@@ -166,12 +188,10 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
           };
 
           document.getElementById('renameTab').onclick = () => {
-            const newTitle = prompt('Enter new tab name:', tabs[currentTabIndex].title);
-            if (newTitle) {
-              tabs[currentTabIndex].title = newTitle;
-              renderTabs();
-              updateTab();
-            }
+            vscode.postMessage({ 
+              type: 'renameTab', 
+              value: { index: currentTabIndex, currentTitle: tabs[currentTabIndex].title }
+            });
           };
 
           document.getElementById('deleteTab').onclick = () => {
