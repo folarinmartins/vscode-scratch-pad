@@ -4,11 +4,14 @@
 
 Scratch Pad is a simple, yet powerful extension for Visual Studio Code that provides a convenient space for quick notes, code snippets, and temporary text alongside your workspace.
 
-This came from need I'd had for a long time - opened a feature request on vs code (VS Code issue)[https://github.com/Microsoft/vscode/issues/58774] but it wasn't approved, so I went ahead to create one
+This came from a need I'd had for a long time - opened a feature request on VS Code ([VS Code issue](https://github.com/Microsoft/vscode/issues/58774)) but it wasn't approved, so I went ahead to create one.
 
 ## Features
 
 -   **Persistent Scratchpad**: A dedicated space for notes that persists between VS Code sessions.
+-   **Multiple Tabs**: Create and manage multiple scratchpads for better organization.
+-   **Cross-Device Sync**: Your scratchpad content syncs across devices using VS Code's Settings Sync.
+-   **Cross-Workspace Persistence**: Access your scratchpad content across different workspaces.
 -   **Convenient Location**: Sits right next to your terminal for easy access.
 -   **Auto-save**: Your notes are automatically saved as you type.
 -   **Theme-matched**: Automatically matches your VS Code theme for a seamless look.
@@ -31,6 +34,9 @@ This extension requires Visual Studio Code version 1.60.0 or higher.
 1. Click on the Scratch Pad icon in the panel area (where Terminal and Output views are located)
 2. Start typing your notes or pasting your snippets
 3. Your content is automatically saved
+4. To add a new tab, click the '+' button
+5. To rename a tab, double-click on its name
+6. To close a tab, click the 'x' button (you'll be prompted for confirmation)
 
 ## Extension Settings
 
@@ -41,14 +47,17 @@ This extension contributes the following settings:
 
 ## Known Issues
 
--   Occasionally delayed syncing of content: actively being worked on
+-   None currently reported
 
 ## Roadmap
 
 Future plans for Scratch Pad include:
 
--   [ ] Online synchronization
--   [ ] Multiple scratchpads
+-   [ ] Drag-and-drop functionality to reorder tabs
+-   [ ] Tab groups or categories for better organization
+-   [ ] Search functionality across all tabs
+-   [ ] Syntax highlighting for common programming languages
+-   [ ] Option to export all tabs as a single document
 -   [ ] Markdown support
 -   [ ] Code snippet formatting
 -   [ ] Manage Secrets

@@ -12,6 +12,11 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 -   [Planned] Introduce syntax highlighting for common programming languages
 -   [Planned] Add option to export all tabs as a single document
 
+## [1.7.0] - 2024-10-11
+
+-   [Added] Enabled syncing across devices using globalState.setKeysForSync
+-   [Changed] Scratchpad content now syncs with VS Code's Settings Sync feature
+
 ## [1.6.1] - 2024-10-11
 
 -   [Added] Cross-workspace data persistence using globalState
