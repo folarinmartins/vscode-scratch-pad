@@ -2,7 +2,7 @@
     "name": "vscode-scribble-scratchpad",
     "displayName": "VS Code Scratchpad",
     "description": "A scratchpad extension for VS Code with Settings Sync support",
-    "version": "1.6.1",
+    "version": "1.7.0",
     "icon": "resources/makethefuture.png",
     "publisher": "mfolarin",
     "engines": {
@@ -69,6 +69,7 @@
     "homepage": "https://github.com/folarinmartins/vscode-scratch-pad#readme",
     "license": "MIT",
     "dependencies": {
-        "monaco-editor": "^0.50.0"
+        "monaco-editor": "^0.50.0",
+        "vsce": "^2.15.0"
     }
 }

@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-// import * as path from 'path';
-// import * as fs from 'fs';
 
 const SCRATCHPAD_CONTENT_KEY = 'scratchpadTabs';
 
@@ -300,6 +298,7 @@ class ScratchpadViewProvider implements vscode.WebviewViewProvider {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  context.globalState.setKeysForSync([SCRATCHPAD_CONTENT_KEY]);
   const provider = new ScratchpadViewProvider(context);
 
   context.subscriptions.push(
