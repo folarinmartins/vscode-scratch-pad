@@ -12,6 +12,11 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 -   [Planned] Introduce syntax highlighting for common programming languages
 -   [Planned] Add option to export all tabs as a single document
 
+## [1.7.1] - 2024-10-21
+
+-   [Changed] Updated documentation
+-   [Fixed] Bug: Deployment pipeline did not work
+
 ## [1.7.0] - 2024-10-11
 
 -   [Added] Enabled syncing across devices using globalState.setKeysForSync
@@ -30,8 +35,6 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 -   [Added] Confirmation dialog before closing tabs
 -   [Changed] Replaced edit icon with double-click functionality for renaming
 -   [Changed] Improved close icon design and size
-
-// ... rest of the changelog ...
 
 ## [1.4.3] - 2024-10-09
 
