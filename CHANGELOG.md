@@ -15,7 +15,7 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 ## [1.7.1] - 2024-10-21
 
 -   [Changed] Updated documentation
--   [Fixed] Bug: Tab renaming not working
+-   [Fixed] Bug: Deployment pipeline did not work
 
 ## [1.7.0] - 2024-10-11
 
