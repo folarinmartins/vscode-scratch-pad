@@ -2,7 +2,7 @@
     "name": "vscode-scribble-scratchpad",
     "displayName": "VS Code Scratchpad",
     "description": "A scratchpad extension for VS Code with Settings Sync support",
-    "version": "1.7.1",
+    "version": "1.7.2",
     "icon": "resources/makethefuture.png",
     "publisher": "mfolarin",
     "engines": {
