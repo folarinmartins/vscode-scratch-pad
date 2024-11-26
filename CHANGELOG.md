@@ -6,11 +6,14 @@ All notable changes to the "scratch-pad" extension will be documented in this fi
 
 ## [Unreleased]
 
+-   [Planned] Add Archived Tabs feature
 -   [Planned] Add drag-and-drop functionality to reorder tabs
 -   [Planned] Implement tab groups or categories for better organization
 -   [Planned] Add search functionality across all tabs
--   [Planned] Introduce syntax highlighting for common programming languages
 -   [Planned] Add option to export all tabs as a single document
+-   [Planned] Add Markdown support
+-   [Planned] Introduce syntax highlighting for common programming languages
+-   [Planned] Add manage secrets feature
 
 ## [1.7.1] - 2024-10-21
 
